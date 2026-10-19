@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Dividual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --blue:#5a63f5; --blue-bright:#8b9bff; --blue-pale:#c3ccff;
+    --pink:#ff4d97; --pink-soft:#ff7ab0; --cream:#fdf8ec; --ink:#1a0d24; --shadow:#13031a;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; overflow:hidden; }
+  body{
+    font-family:"Archivo",sans-serif; color:#fff; user-select:none; -webkit-user-select:none;
+    touch-action:none; background:var(--blue); position:relative;
+  }
+
+  /* burst backdrop */
+  #burst{ position:fixed; inset:0; z-index:0; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 44%, var(--blue-bright) 0%, var(--blue) 45%, #3b42c9 100%); }
+  #burst::before{ content:""; position:absolute; left:50%; top:44%; width:220vmax; height:220vmax;
+    transform:translate(-50%,-50%);
+    background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,255,255,0) 0deg, rgba(255,255,255,0.15) 1deg, rgba(255,255,255,0) 2.4deg, rgba(255,255,255,0) 5deg);
+    animation:spin 120s linear infinite; opacity:0.55; }
+  @keyframes spin{ to{ transform:translate(-50%,-50%) rotate(360deg); } }
+
+  /* hello mark */
+  #hello{ position:fixed; top:30px; left:0; right:0; z-index:6; text-align:center;
+    font-family:"Archivo Black",sans-serif; color:#fff; font-size:clamp(30px,6.5vw,46px);
+    letter-spacing:-0.02em; display:flex; align-items:center; justify-content:center; gap:9px; }
+  #hello .eye{ width:0.6em; height:0.6em; border-radius:50%; background:#fff; position:relative; }
+  #hello .eye::after{ content:""; position:absolute; right:-0.48em; top:50%; width:0.46em; height:0.9em;
+    border:0.13em solid #fff; border-left:none; border-radius:0 1em 1em 0; transform:translateY(-50%); }
+
+  /* chunky panel */
+  .stage{ position:fixed; inset:0; z-index:5; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .panel{ position:relative; width:min(92vw,540px); background:var(--cream); color:var(--ink);
+    border:3px solid var(--ink); box-shadow:14px 14px 0 var(--shadow); }
+  .panel .bar{ background:var(--pink); border-bottom:3px solid var(--ink); font-weight:600;
+    font-size:clamp(18px,3.6vw,25px); text-align:center; padding:14px; }
+  .panel .body{ padding:48px 30px; min-height:240px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:26px; text-align:center; }
+  .panel .foot{ border-top:3px solid var(--ink); padding:20px; display:flex; justify-content:center; align-items:center; }
+  .headline{ font-family:"Archivo Black",sans-serif; font-size:clamp(30px,7vw,52px); line-height:1.05; }
+  .sub{ font-size:clamp(15px,3.4vw,20px); color:#5a4a63; font-weight:500; }
+
+  .progress-wrap{ width:100%; height:30px; border:3px solid var(--ink); background:#fff; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background-image:repeating-linear-gradient(45deg, var(--pink) 0 14px, var(--pink-soft) 14px 28px); transition:width .2s linear; }
+  .proc-label{ font-weight:600; font-size:16px; color:#5a4a63; letter-spacing:0.04em; }
+
+  .pips{ display:flex; gap:12px; }
+  .pips .pip{ width:13px; height:13px; border:2px solid var(--ink); background:#fff; }
+  .pips .pip.on{ background:var(--pink); }
+
+  .bigbtn{ background:var(--pink); border:3px solid var(--ink); box-shadow:7px 7px 0 var(--shadow);
+    font-weight:700; font-size:clamp(18px,4vw,22px); letter-spacing:0.16em; color:var(--ink);
+    padding:15px 54px; cursor:pointer; transition:transform .05s, box-shadow .05s; }
+  .bigbtn:active{ transform:translate(4px,4px); box-shadow:3px 3px 0 var(--shadow); }
+
+  /* brain-scan intro visual */
+  .scanbox{ position:relative; width:150px; height:150px; border:3px solid var(--ink);
+    background:#fff; overflow:hidden; display:flex; align-items:center; justify-content:center;
+    box-shadow:7px 7px 0 var(--shadow); }
+  .scanbox .brain{ font-size:80px; line-height:1; }
+  .scanbox .scanline{ position:absolute; top:0; left:0; right:0; height:12px;
+    background:var(--pink); opacity:0.8; box-shadow:0 0 16px 4px var(--pink-soft);
+    animation:scan 2s ease-in-out infinite; }
+  @keyframes scan{ 0%{ transform:translateY(-14px);} 50%{ transform:translateY(146px);} 100%{ transform:translateY(-14px);} }
+
+  .rcard{ width:190px; height:272px; background:#fff; border:3px solid var(--ink);
+    box-shadow:10px 10px 0 var(--shadow); border-radius:10px; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    transform:scale(0.5) rotate(-8deg); opacity:0; transition:transform .6s cubic-bezier(.2,.9,.3,1.3), opacity .4s; }
+  .rcard.show{ transform:scale(1) rotate(0); opacity:1; }
+  .rcard .pip-c{ font-size:90px; line-height:1; }
+  .rcard .corner{ position:absolute; font-family:"Archivo Black",sans-serif; font-size:28px; display:flex; flex-direction:column; align-items:center; line-height:0.9; }
+  .rcard .corner.tl{ top:11px; left:13px; } .rcard .corner.br{ bottom:11px; right:13px; transform:rotate(180deg); }
+  .rcard.red{ color:var(--pink); } .rcard.black{ color:var(--ink); }
+  .rname{ font-family:"Archivo Black",sans-serif; font-size:clamp(20px,4.6vw,30px); }
+
+  /* invisible operator quadrants */
+  #pad{ position:fixed; inset:0; z-index:20; }
+  #pad.locked{ pointer-events:none; }
+  .quad{ position:absolute; width:50%; height:50%; }
+  .q-tl{top:0;left:0;} .q-tr{top:0;right:0;} .q-bl{bottom:0;left:0;} .q-br{bottom:0;right:0;}
+
+  /* operator-only tap dot */
+  #tapdot{ position:fixed; bottom:6px; left:50%; transform:translateX(-50%); z-index:30;
+    width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,0); transition:background .1s; pointer-events:none; }
+  #tapdot.on{ background:rgba(255,255,255,0.5); }
+
+  .corner-btn{ position:fixed; bottom:10px; z-index:60; width:30px; height:30px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.4); background:rgba(26,13,36,0.4); color:#fff; font-size:12px; cursor:pointer; opacity:0.35; }
+  .corner-btn:hover{ opacity:1; }
+  #soundToggle{ right:48px; } #rehearseToggle{ right:10px; }
+  #hud{ position:fixed; left:12px; bottom:12px; z-index:50; font-size:12px; color:#fff;
+    background:rgba(26,13,36,0.9); border:2px solid var(--pink); border-radius:8px; padding:10px 14px; min-width:180px; display:none; }
+  #hud.show{ display:block; }
+  #hud .row{ display:flex; justify-content:space-between; gap:14px; margin:3px 0; }
+  #hud .k{ color:var(--blue-pale); } #hud .big{ font-size:20px; font-weight:700; }
+  #hud .hint{ font-size:12px; color:var(--blue-pale); margin-top:6px; }
+  .hidden{ display:none !important; }
+
+
+  /* BOOK TEST: preserve the original Dividual palette, branding and panels. */
+  #pad { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(4,1fr); }
+  #pad.locked { pointer-events:none; }
+  .secret-key { border:0; appearance:none; border-radius:0; padding:0; background:transparent;
+    color:transparent; font-family:"Archivo Black",sans-serif; font-size:clamp(21px,7vw,34px);
+    outline:none; cursor:default; touch-action:manipulation; }
+  /* Toggling rehearsal makes the *same invisible keypad* visible to the operator. */
+  #pad.show-keypad .secret-key { color:rgba(255,255,255,0.92); background:rgba(26,13,36,0.36);
+    border:1px solid rgba(255,255,255,0.36); }
+  #pad.show-keypad .secret-key.back { background:rgba(255,77,151,0.36); }
+  #pad.show-keypad .secret-key.empty { background:rgba(0,0,0,0.16); }
+  .book-card { width:min(100%,390px); min-height:240px; height:auto;
+    padding:36px 20px 22px; background:#fff; border-radius:10px;
+    flex-direction:column; gap:14px; overflow:hidden; }
+  .book-quote { position:absolute; top:0; left:14px; font-family:Georgia,serif;
+    font-size:72px; line-height:1; color:var(--pink); opacity:.65; }
+  .book-words { font-family:"Archivo Black",sans-serif; font-size:clamp(25px,5.5vw,35px);
+    line-height:1.12; overflow-wrap:anywhere; position:relative; z-index:1; }
+  .book-words.long { font-size:clamp(20px,4.8vw,29px); }
+  .book-words.very-long { font-size:clamp(18px,4.2vw,25px); }
+  .reveal-caption { max-width:100%; line-height:1.4; }
+  .error-icon { font-size:66px; line-height:1; }
+  .panel .book-body { gap:20px; padding:26px 24px; }
+  #hud { z-index:70; pointer-events:none; }
+  #rehearseToggle { z-index:80; }
+  #soundToggle { z-index:80; }
+  @media (max-height:650px){
+    #hello { top:12px; font-size:28px; }
+    .panel .body { padding:22px 22px; min-height:190px; gap:14px; }
+    .panel .book-body { padding:15px 22px; }
+    .book-card { min-height:190px; padding:28px 16px 16px; }
+    .panel .bar { padding:9px; }
+    .panel .foot { padding:12px; }
+  }
+</style>
+</head>
+<body>
+  <div id="burst"></div>
+  <div id="hello">Hello <span class="eye"></span></div>
+
+  <!-- Identical Dividual introduction and original logo -->
+  <div class="stage" id="s-intro">
+    <div class="panel">
+      <div class="bar">Dividual Systems™</div>
+      <div class="body">
+        <div class="scanbox"><div class="brain">🧠</div><div class="scanline"></div></div>
+        <div class="headline" style="font-size:clamp(26px,6vw,44px)">Scanning<br>your brain…</div>
+        <div class="sub">Press start to get a brain scan</div>
+      </div>
+      <div class="foot"><button class="bigbtn" id="btnStart">START</button></div>
+    </div>
+  </div>
+
+  <!-- Three seemingly unrelated questions. Each secretly records ONE keypad digit. -->
+  <div class="stage hidden" id="s-question">
+    <div class="panel">
+      <div class="bar" id="qBar">Question 1 of 3</div>
+      <div class="body">
+        <div class="headline" id="qHead">If your memories<br>were erased…</div>
+        <div class="sub" id="qSub">What would you choose to keep?</div>
+      </div>
+      <div class="foot"><div class="pips">
+        <div class="pip" id="pip0"></div>
+        <div class="pip" id="pip1"></div>
+        <div class="pip" id="pip2"></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- Original loading style -->
+  <div class="stage hidden" id="s-processing">
+    <div class="panel">
+      <div class="bar">Analysing</div>
+      <div class="body">
+        <div class="headline" style="font-size:clamp(24px,5.5vw,38px)">Catching<br>your words…</div>
+        <div class="progress-wrap"><div class="progress-fill" id="procFill"></div></div>
+        <div class="proc-label" id="procText">Mapping neural lattice</div>
+      </div>
+      <div class="foot"><div class="proc-label">Dividual Systems™</div></div>
+    </div>
+  </div>
+
+  <!-- Book-word reveal, with the original card flip-and-pop animation -->
+  <div class="stage hidden" id="s-reveal">
+    <div class="panel">
+      <div class="bar">The words on your page</div>
+      <div class="body book-body">
+        <div class="rcard book-card" id="rcard" aria-live="polite">
+          <span class="book-quote" aria-hidden="true">“</span>
+          <div class="book-words" id="rWords"></div>
+        </div>
+        <div class="sub reveal-caption">Was that what you were thinking of?</div>
+      </div>
+      <div class="foot"><button class="bigbtn" id="btnAgain">AGAIN</button></div>
+    </div>
+  </div>
+
+  <!-- Invalid entries never produce a misleading reveal. -->
+  <div class="stage hidden" id="s-error">
+    <div class="panel">
+      <div class="bar">Dividual Systems™</div>
+      <div class="body">
+        <div class="error-icon">📡</div>
+        <div class="headline" style="font-size:clamp(26px,6vw,38px)">Signal<br>interrupted…</div>
+        <div class="sub">Try connecting again</div>
+      </div>
+      <div class="foot"><button class="bigbtn" id="btnRetry">RETRY</button></div>
+    </div>
+  </div>
+
+  <!-- Invisible *numeric* keypad, full-screen like the original quadrants. -->
+  <!-- Positions: 1 2 3 / 4 5 6 / 7 8 9 / BACK 0 (empty). -->
+  <div id="pad" class="locked" aria-label="Invisible operator keypad">
+    <button type="button" class="secret-key" data-key="1" aria-label="1">1</button>
+    <button type="button" class="secret-key" data-key="2" aria-label="2">2</button>
+    <button type="button" class="secret-key" data-key="3" aria-label="3">3</button>
+    <button type="button" class="secret-key" data-key="4" aria-label="4">4</button>
+    <button type="button" class="secret-key" data-key="5" aria-label="5">5</button>
+    <button type="button" class="secret-key" data-key="6" aria-label="6">6</button>
+    <button type="button" class="secret-key" data-key="7" aria-label="7">7</button>
+    <button type="button" class="secret-key" data-key="8" aria-label="8">8</button>
+    <button type="button" class="secret-key" data-key="9" aria-label="9">9</button>
+    <button type="button" class="secret-key back" data-key="back" aria-label="Undo last digit">⌫</button>
+    <button type="button" class="secret-key" data-key="0" aria-label="0">0</button>
+    <button type="button" class="secret-key empty" data-key="unused" tabindex="-1" aria-label="Unused"></button>
+  </div>
+  <div id="tapdot"></div>
+
+  <!-- Original unobtrusive sound and rehearsal controls -->
+  <button id="soundToggle" class="corner-btn" title="Sound on/off" aria-label="Sound on/off">♪</button>
+  <button id="rehearseToggle" class="corner-btn" title="Toggle rehearsal keypad" aria-label="Toggle rehearsal keypad">◐</button>
+  <div id="hud">
+    <div class="row"><span class="k">stage</span><span id="hudStage" class="big">intro</span></div>
+    <div class="row"><span class="k">digits</span><span id="hudDigits" class="big">—</span></div>
+    <div class="row"><span class="k">page</span><span id="hudPage" class="big">—</span></div>
+    <div class="hint" id="hudHint">3 questions = 3 digits, e.g. 0 → 1 → 5</div>
+  </div>
+
+<script>
+'use strict';
+// DIVIDUAL BOOK TEST — ONE self-contained HTML file; nothing to install.
+// Every odd page 5–209 is included below, using the supplied exact wording.
+// To add or change a word, edit the value next to its page number.
+const PAGE_WORDS = {
+  "5": "Using",
+  "7": "Sounds",
+  "9": "What",
+  "11": "Answering Questions (Most)",
+  "13": "Discuss",
+  "15": "Debates",
+  "17": "The Essay",
+  "19": "The Names",
+  "21": "Is there",
+  "23": "Writing for",
+  "25": "Chapter 2",
+  "27": "It is",
+  "29": "Settle",
+  "31": "Initial Research",
+  "33": "Record",
+  "35": "Hamm 1983",
+  "37": "Minstrels",
+  "39": "Synthesis",
+  "41": "Chapter three",
+  "43": "Instruments",
+  "45": "Or the",
+  "47": "Voyager",
+  "49": "The World Wide Web",
+  "51": "If your",
+  "53": "Company",
+  "55": "Bibliography",
+  "57": "Chapter 4",
+  "59": "Absolute Accuracy",
+  "61": "University of Chicago",
+  "63": "The Two",
+  "65": "A full",
+  "67": "The conspicuous",
+  "69": "Using Citations",
+  "71": "Quoting a Quotation",
+  "73": "A companion to",
+  "75": "Chapter Five",
+  "77": "Necessary",
+  "79": "They are",
+  "81": "Number each",
+  "83": "Do you see a MAP?? :)",
+  "85": "J.S. Bach",
+  "87": "Our Depends",
+  "89": "Foot Of",
+  "91": "Part II",
+  "93": "Chapter Six",
+  "95": "This is Wrong",
+  "97": "Centuries",
+  "99": "Countries, Towns",
+  "101": "When a Range",
+  "103": "Omitted",
+  "105": "Hyphens",
+  "107": "Latin Abbreviations",
+  "109": "Not: The Manuscript",
+  "111": "Confusion with",
+  "113": "First set",
+  "115": "Any sort",
+  "117": "It was made",
+  "119": "Take the Sentence",
+  "121": "Transliteration",
+  "123": "Chapter Seven",
+  "125": "A System",
+  "127": "Dating a Musical Work",
+  "129": "Conventions that Prevailed",
+  "131": "Harmonic Series",
+  "133": "Foreign- Language",
+  "135": "Oratorio",
+  "137": "Ritardando",
+  "139": "American Standard System",
+  "141": "The Group of Five",
+  "143": "Between Figured Bass",
+  "145": "Chapter Eight",
+  "147": "Revolutionized",
+  "149": "Entry Printed",
+  "151": "Entry",
+  "153": "Works: Edition Ludwig van Beethoven",
+  "155": "Vincent Duckles",
+  "157": "Clough, F. F.",
+  "159": "Every 5",
+  "161": "http:/www.nypl.org/research",
+  "163": "Chapter Nine",
+  "165": "Page, J.K., “Music and the Royal",
+  "167": "Books Published",
+  "169": "Books to Coincide",
+  "171": "New Grove II, s.v. ‘New Orleans’",
+  "173": "Letters",
+  "175": "Official and Government Documents",
+  "177": "The title",
+  "179": "Bibliography",
+  "181": "Chapter 10",
+  "183": "Chamber Music",
+  "185": "Part two of Ravel’s",
+  "187": "As far as",
+  "189": "Works that have",
+  "191": "Operas and parts of Operas",
+  "193": "Work-Lists",
+  "195": "Chapter Eleven",
+  "197": "You Should",
+  "199": "Paintings and Other Visual Art",
+  "201": "Television",
+  "203": "Glossary",
+  "205": "Internet",
+  "207": "Tense",
+  "209": "Clauses"
+};
+
+// Three questions encode exactly three digits: 5 = 005, 15 = 015, 137 = 137.
+// The hidden full-screen keypad is arranged like a standard phone keypad:
+//    1 2 3
+//    4 5 6
+//    7 8 9
+//    ⌫ 0 [unused]
+// One tap per question -> automatic advance. Bottom-left ⌫ undoes a digit.
+// On the performance screen it is invisible; ◐ or R shows rehearsal mode.
+// X resets; M toggles music; hardware keyboard digits also work.
+const QUESTIONS = [
+  { head: 'If your memories<br>were erased…', sub: 'What would you choose to keep?' },
+  { head: 'What words would<br>you send out to sea?', sub: 'Imagine them drifting beyond the shore' },
+  { head: 'Can Dividual<br>read your mind?', sub: 'Focus on the opening words of your page' }
+];
+const SETTLE_MS = 750;
+const el = id => document.getElementById(id);
+const stages = {
+  intro: el('s-intro'), question: el('s-question'),
+  processing: el('s-processing'), reveal: el('s-reveal'), error: el('s-error')
+};
+const pad = el('pad');
+let stage = 'intro', digits = [], settleTimer = null, processingInterval = null;
+let soundOn = false, audioCtx = null, droneOsc = null, droneGain = null;
+let currentPage = null;
+
+function showStage(name) {
+  Object.values(stages).forEach(s => s.classList.add('hidden'));
+  stages[name].classList.remove('hidden');
+}
+function setPadEnabled(on) { pad.classList.toggle('locked', !on); }
+function updateHud() {
+  el('hudStage').textContent = stage;
+  el('hudDigits').textContent = (digits.join('') || '—') + ' '.repeat(0);
+  el('hudPage').textContent = digits.length === 3 ? String(Number(digits.join(''))).padStart(3,'0') : '—';
+  el('hudHint').textContent = stage === 'question'
+    ? `Question ${digits.length + 1} / 3 — one digit per question; ⌫ = undo`
+    : '0 → 1 → 5 enters page 015. Two fingers or X = restart.';
+}
+function tapConfirm() {
+  const dot = el('tapdot');
+  dot.classList.add('on');
+  setTimeout(() => dot.classList.remove('on'), 90);
+  if (navigator.vibrate) navigator.vibrate(12);
+  blip(420, 0.04);
+}
+function ensureAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    droneGain = audioCtx.createGain(); droneGain.gain.value = 0; droneGain.connect(audioCtx.destination);
+    droneOsc = audioCtx.createOscillator(); droneOsc.type = 'sine'; droneOsc.frequency.value = 70;
+    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.15;
+    const lg = audioCtx.createGain(); lg.gain.value = 8;
+    lfo.connect(lg); lg.connect(droneOsc.frequency);
+    droneOsc.connect(droneGain); droneOsc.start(); lfo.start();
+  } catch (e) { /* sound is optional */ }
+}
+function blip(freq, vol) {
+  if (!soundOn || !audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'triangle'; o.frequency.value = freq; g.gain.value = vol || 0.05;
+  o.connect(g); g.connect(audioCtx.destination);
+  const t = audioCtx.currentTime;
+  g.gain.setValueAtTime(g.gain.value, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+  o.start(t); o.stop(t + 0.2);
+}
+function setSound(on) {
+  soundOn = on;
+  el('soundToggle').style.opacity = on ? 1 : 0.35;
+  if (on) {
+    ensureAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    if (droneGain) droneGain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.6);
+  } else if (droneGain) droneGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+}
+function reset() {
+  clearTimeout(settleTimer);
+  clearInterval(processingInterval);
+  digits = []; currentPage = null; stage = 'intro';
+  el('rcard').classList.remove('show');
+  el('procFill').style.width = '0%';
+  setPadEnabled(false);
+  showStage('intro'); updateHud();
+}
+function setQuestion(index) {
+  stage = 'question';
+  const q = QUESTIONS[index];
+  el('qBar').textContent = `Question ${index + 1} of 3`;
+  el('qHead').innerHTML = q.head;
+  el('qSub').textContent = q.sub;
+  for (let i = 0; i < 3; i++) el(`pip${i}`).classList.toggle('on', i <= index);
+  showStage('question'); setPadEnabled(true); updateHud();
+}
+function startScan() { ensureAudio(); digits = []; setQuestion(0); }
+function onKey(key) {
+  if (stage !== 'question') return;
+  if (key === 'back') {
+    clearTimeout(settleTimer);
+    if (digits.length) {
+      digits.pop();
+      setQuestion(digits.length);
+      tapConfirm();
+    }
+    return;
+  }
+  if (!/^\d$/.test(key) || digits.length >= 3) return;
+  digits.push(key); tapConfirm(); updateHud();
+  setPadEnabled(false); // one digit per question — no accidental doubles
+  settleTimer = setTimeout(() => {
+    if (digits.length < 3) setQuestion(digits.length);
+    else {
+      const page = Number(digits.join(''));
+      if (Object.prototype.hasOwnProperty.call(PAGE_WORDS, page)) runProcessing(page);
+      else showError();
+    }
+  }, SETTLE_MS);
+}
+function showError() {
+  stage = 'error'; setPadEnabled(false); showStage('error'); updateHud();
+  if (navigator.vibrate) navigator.vibrate([20, 50, 20]);
+}
+function runProcessing(page) {
+  currentPage = page;
+  stage = 'processing'; setPadEnabled(false); showStage('processing'); updateHud();
+  if (soundOn && droneGain) droneGain.gain.linearRampToValueAtTime(0.11, audioCtx.currentTime + 1);
+  const fill = el('procFill'), txt = el('procText');
+  const messages = ['Mapping neural lattice', 'Cross-referencing the subconscious',
+    'Locating the passage', 'Rendering the words'];
+  let p = 0, previousMessage = -1;
+  fill.style.width = '0%';
+  txt.textContent = messages[0];
+  clearInterval(processingInterval);
+  processingInterval = setInterval(() => {
+    p = Math.min(100, p + Math.random() * 8 + 4);
+    fill.style.width = p + '%';
+    const messageIndex = Math.min(messages.length-1, Math.floor(p / 26));
+    if (messageIndex !== previousMessage) {
+      previousMessage = messageIndex; txt.textContent = messages[messageIndex];
+      blip(300 + messageIndex * 60, 0.05);
+    }
+    if (p >= 100) {
+      clearInterval(processingInterval);
+      settleTimer = setTimeout(revealWords, 550);
+    }
+  }, 350);
+}
+function revealWords() {
+  const words = PAGE_WORDS[currentPage];
+  if (typeof words !== 'string') { showError(); return; }
+  stage = 'reveal'; setPadEnabled(false);
+  el('rWords').textContent = words;
+  el('rWords').className = 'book-words' + (words.length >= 32 ? ' very-long' : words.length >= 21 ? ' long' : '');
+  el('rcard').classList.remove('show');
+  showStage('reveal');
+  void el('rcard').offsetWidth;
+  el('rcard').classList.add('show');
+  if (navigator.vibrate) navigator.vibrate([10, 40, 10]);
+  blip(523, 0.07); setTimeout(() => blip(784, 0.06), 120);
+  if (soundOn && droneGain) droneGain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.6);
+  updateHud();
+  // Optional old-system hook: safely does nothing if no external master exists.
+  if (typeof window.send === 'function') {
+    window.send('notifyMaster', { page: currentPage, words });
+  }
+}
+
+// The invisible tappable keys receive exactly one event on touch OR desktop.
+pad.addEventListener('pointerdown', event => {
+  if (event.isPrimary === false) { reset(); return; } // two fingers = restart
+  const key = event.target.closest('[data-key]');
+  if (!key) return;
+  event.preventDefault();
+  onKey(key.dataset.key);
+});
+// During the 750 ms between questions, backspace remains available by keyboard.
+document.addEventListener('keydown', event => {
+  if (event.key.toLowerCase() === 'r') toggleRehearsal();
+  else if (event.key.toLowerCase() === 'x' || event.key === 'Escape') reset();
+  else if (event.key.toLowerCase() === 'm') setSound(!soundOn);
+  else if (event.key === 'Enter' && stage === 'intro') startScan();
+  else if (/^\d$/.test(event.key) && stage === 'question') onKey(event.key);
+  else if (event.key === 'Backspace' && stage === 'question') onKey('back');
+});
+function toggleRehearsal() {
+  const visible = pad.classList.toggle('show-keypad');
+  el('hud').classList.toggle('show', visible);
+}
+el('soundToggle').addEventListener('click', () => setSound(!soundOn));
+el('rehearseToggle').addEventListener('click', toggleRehearsal);
+el('btnStart').addEventListener('click', startScan);
+el('btnAgain').addEventListener('click', reset);
+el('btnRetry').addEventListener('click', reset);
+reset();
+</script>
+</body>
+</html>
